@@ -10,6 +10,7 @@ var app = express();
 
 app.use(bodyParser.json()); // returns a function
 
+// Generate POST with postman.
 app.post('/todos', (req, res) => {
     // console.log(req.body); // body stored by body-parser
     var todo = new Todo({
@@ -26,3 +27,5 @@ app.post('/todos', (req, res) => {
 app.listen(3000, () => {
     console.log('Started on port 3000');
 });
+
+module.exports = {app};
