@@ -18,14 +18,24 @@ app.post('/todos', (req, res) => {
     });
 
     todo.save().then((doc) => {
-        res.send(doc);
+        res.send(doc); // res.send is reponse.
+    }, (e) => {
+        res.status(400).send(e);
+    });
+});
+
+app.get('/todos', (req, res) => {
+
+    Todo.find().then((todos) => {
+        // better to pass in ES6 {todos} object becaues of all the accessible properties rather than passing a todos array. Sets more flexible future.
+        res.send({todos});
     }, (e) => {
         res.status(400).send(e);
     });
 });
 
 app.listen(3000, () => {
-    console.log('Started on port 3000');
+    console.log('Started on port 3000'); 
 });
 
 module.exports = {app};

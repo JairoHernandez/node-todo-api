@@ -4,7 +4,7 @@ const request = require('supertest');
 const {app} = require('./../server');
 const {Todo} = require('./../models/todo');
 
-/**Wipe up db entries since test will assume starting with 0 todos*/
+/**Before each individual 'it' test wipe up db entries since test will assume starting with 0 todos*/
 beforeEach((done) => {
     Todo.remove({}).then(() => done());
 });
@@ -18,7 +18,7 @@ describe('POST /todos', () => {
 
         request(app)
             .post('/todos')
-            .send({text})
+            .send({text}) // the test sends to app
             .expect(200)
             .expect((res) => {
                 expect(res.body.text).toBe(text);
