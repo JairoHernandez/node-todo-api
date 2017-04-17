@@ -4,9 +4,16 @@ const request = require('supertest');
 const {app} = require('./../server');
 const {Todo} = require('./../models/todo');
 
+const todos = [
+    {text: 'First test todo'},
+    {text: 'Second test todo'}
+]
+
 /**Before each individual 'it' test wipe up db entries since test will assume starting with 0 todos*/
 beforeEach((done) => {
-    Todo.remove({}).then(() => done());
+    Todo.remove({}).then(() => {
+        return Todo.insertMany(todos);
+    }).then(() => done());
 });
 
 /** 2 test cases
@@ -28,7 +35,7 @@ describe('POST /todos', () => {
                     return done(err); //stops function execution
                 }
             
-                Todo.find().then((todos) => {
+                Todo.find({text}).then((todos) => {
                     // console.log(todos);
                     expect(todos.length).toBe(1);
                     expect(todos[0].text).toBe(text);
@@ -54,10 +61,21 @@ describe('POST /todos', () => {
 
                 Todo.find().then((todos) => {
                     // console.log(todos);
-                    expect(todos.length).toBe(0);
+                    expect(todos.length).toBe(2);
                     done();
                 }).catch((e) => done(e));
             });
+    });
+});
 
+describe('GET /todos', () => {
+    it('should get all todos', (done) => {
+        request(app)
+            .get('/todos')
+            .expect(200)
+            .expect((res) => {
+                expect(res.body.todos.length).toBe(2);
+            })
+            .end(done);
     });
 });
