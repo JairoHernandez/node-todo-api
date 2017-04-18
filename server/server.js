@@ -5,6 +5,7 @@ var bodyParser = require('body-parser'); // takes JSON and converts to object.
 var {mongoose} = require('./db/mongoose');
 var {Todo} =  require('./models/todo');
 var {User} = require('./models/user');
+var {ObjectID} = require('mongodb');
 
 var app = express();
 
@@ -20,7 +21,7 @@ app.post('/todos', (req, res) => {
     todo.save().then((doc) => {
         res.send(doc); // res.send is reponse.
     }, (e) => {
-        res.status(400).send(e);
+        res.status(400).send(e); // sends back 400 error with empty message
     });
 });
 
@@ -32,6 +33,26 @@ app.get('/todos', (req, res) => {
     }, (e) => {
         res.status(400).send(e);
     });
+});
+
+// GET /todos/1234324
+// parameter :id can be any name
+app.get('/todos/:id', (req, res) => {
+    //res.send(req.params); // Use to test API is responding in postman.
+    var id = req.params.id;
+
+    // Validate using isValid or send 404 NotFound with empty body
+    if (!ObjectID.isValid(id)) {
+        return res.status(404).send();
+    }
+
+    // findById
+    Todo.findById(id).then((todo) => {
+        if (!todo) {
+            return res.status(404).send();
+        }
+        res.send({todo});
+    }).catch((e) => res.status(400));
 });
 
 app.listen(3000, () => {
