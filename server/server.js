@@ -85,7 +85,7 @@ app.patch('/todos/:id', (req, res) => {
         return res.status(404).send();
     }
 
-    // update completedAt property
+    // update completedAt property if body.completed is a boolean AND if boolean is true
     if (_.isBoolean(body.completed) && body.completed) {
         body.completedAt = new Date().getTime(); // unix epoch
     } else {
@@ -104,7 +104,6 @@ app.patch('/todos/:id', (req, res) => {
     }).catch((e) => {
         res.status(400).send();
     });
-
 });
 
 app.listen(port, () => {
