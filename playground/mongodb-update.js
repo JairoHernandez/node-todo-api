@@ -30,7 +30,7 @@ MongoClient.connect('mongodb://localhost:27017/TodoApp', (err, db) => {
         $set: {name: "Jairo"},
         $inc: {age: 1}
     }, {
-        returnOriginal: false // returns updated data.
+        returnOriginal: false // returns new object back aka updated data.
     }).then((result) => {
         console.log(result);
     });

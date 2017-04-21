@@ -1,14 +1,15 @@
-var express = require('express');
-var bodyParser = require('body-parser'); // takes JSON and converts to object.
+const express = require('express');
+const bodyParser = require('body-parser'); // takes JSON and converts to object.
 
 //ES6 destructuring
 var {mongoose} = require('./db/mongoose');
 var {Todo} =  require('./models/todo');
 var {User} = require('./models/user');
-var {ObjectID} = require('mongodb');
+const {ObjectID} = require('mongodb');
 
 var app = express();
 const port = process.env.PORT || 3000;
+const _ = require('lodash');
 
 app.use(bodyParser.json()); // returns a function
 
@@ -72,6 +73,38 @@ app.delete('/todos/:id', (req, res) => {
         }
         res.send({todo});
     }).catch((e) => res.status(400));
+});
+
+app.patch('/todos/:id', (req, res) => {
+    var id = req.params.id;
+
+    // Chooses which properties a user can update. In this case only 'text' and 'completed'.
+    var body = _.pick(req.body, ['text', 'completed']);
+
+    if (!ObjectID.isValid(id)) {
+        return res.status(404).send();
+    }
+
+    // update completedAt property
+    if (_.isBoolean(body.completed) && body.completed) {
+        body.completedAt = new Date().getTime(); // unix epoch
+    } else {
+        body.completed = false;
+        body.completedAt = null; // when you want to remove from db always set to null.
+    }
+
+    // {new: true} same returnOriginal: false  from mongodb-update.js because that's how mongo developers wrote it.
+    Todo.findByIdAndUpdate(id, {$set: body}, {new: true}).then((todo) => {
+        if (!todo) {
+            return res.status(404).send();
+        }
+
+        res.send({todo});
+
+    }).catch((e) => {
+        res.status(400).send();
+    });
+
 });
 
 app.listen(port, () => {
