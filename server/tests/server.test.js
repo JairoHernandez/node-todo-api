@@ -149,6 +149,7 @@ describe('DELETE /todos/:id', () => { // :id passed around 'todo'
     });
 });
 
+/** No need to write test for invalid objectID or object not found since those tests have already been written for the other HTTP methods showing that portion works*/
 describe('PATCH /todos/:id', () => { // :id passed around 'todo'
     it('should update the todo', (done) => {
        
