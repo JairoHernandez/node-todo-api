@@ -7,6 +7,8 @@ const bodyParser = require('body-parser'); // takes JSON and converts to object.
 var {mongoose} = require('./db/mongoose');
 var {Todo} =  require('./models/todo');
 var {User} = require('./models/user');
+//console.log('YO: ', {User});
+//console.log(User);
 const {ObjectID} = require('mongodb');
 
 var app = express();
@@ -107,6 +109,23 @@ app.patch('/todos/:id', (req, res) => {
         res.status(400).send();
     });
 });
+
+// POST /users to create users
+app.post('/users', (req, res) => {
+
+    var body = _.pick(req.body, ['email', 'password']);
+    //console.log(body); --> { email: 'jairomh@emc.com', password: 'abc123' }
+    var user = new User(body);
+ 
+    user.save().then(() => { // user can be anything like 'doc'
+        return user.generateAuthToken(); // return since we are returning a chaining promise
+    }).then((token) => {
+        res.header('x-auth', token).send(user); // res.send is response
+    }).catch((e) => {
+        res.status(400).send(e); // sends back 400 error with empty message
+    });
+});
+
 
 app.listen(port, () => {
     console.log(`Started up on port ${port}`); 
