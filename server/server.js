@@ -10,6 +10,7 @@ var {User} = require('./models/user');
 //console.log('YO: ', {User});
 //console.log(User);
 const {ObjectID} = require('mongodb');
+var {authenticate} = require('./middleware/authenticate');
 
 var app = express();
 const port = process.env.PORT;
@@ -126,6 +127,10 @@ app.post('/users', (req, res) => {
     });
 });
 
+// middleware arrow function authenticate in middleware/authenticate.js will make route private
+app.get('/users/me', authenticate, (req, res) => {
+    res.send(req.user);
+});
 
 app.listen(port, () => {
     console.log(`Started up on port ${port}`); 

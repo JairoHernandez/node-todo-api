@@ -54,6 +54,28 @@ UserSchema.methods.generateAuthToken = function () {
     });
 };
 
+// turns everything into model method as oppose to instance method.
+UserSchema.statics.findByToken = function (token) {
+    var User = this; // capitalized model binding.
+    var decoded; // undefined
+
+    try {
+        decoded = jwt.verify(token, 'abc123');
+    } catch (e) {
+        // This reject will cause User.findByToken(token.then(user) => {} in server.js to never fire and will instead fire its attached .catch callback.
+        // return new Promise((resolve, reject) => {
+        //     reject(); 
+        // });
+        return Promise.reject(); // equivalent to last 3 lines and more concise. If you pass in a value to reject() it will be used by 'e' in catch call in server.js.
+    }
+
+    return User.findOne({
+        _id: decoded._id,
+        'tokens.token': token, // quotes required when value has a .dot.
+        'tokens.access': 'auth'
+    });
+};
+
 /**create new User model
 * user
 * email - require it - trim it - set type - set min length of 1 
