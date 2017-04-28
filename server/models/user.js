@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const validator = require('validator');
 const jwt = require('jsonwebtoken');
 const _ = require('lodash');
+const bcrypt = require('bcryptjs');
 
 var UserSchema = new mongoose.Schema({
     // trim property removes all leading and trailing white space
@@ -75,6 +76,23 @@ UserSchema.statics.findByToken = function (token) {
         'tokens.access': 'auth'
     });
 };
+
+// Before running save() from serverjs.js of doc to DB we want to make changes to it.
+UserSchema.pre('save', function(next) {
+    var user = this;
+
+    // checks if password was modified. If it was modified hash(true) password
+    if (user.isModified('password')) {
+        bcrypt.genSalt(10, (err, salt) => {
+            bcrypt.hash(user.password, salt, (err, hash) => {
+                user.password = hash;
+                next(); // allows to move on and save the doc.
+            });
+        });
+    } else {
+        next();
+    }
+});
 
 /**create new User model
 * user
