@@ -12,10 +12,12 @@ var UserSchema = new mongoose.Schema({
         trim: true, 
         minlength: 1, 
         unique: true,
-        validate: {
-            validator: validator.isEmail,
+        validate: [{
+            validator: (value) => {
+                return validator.isEmail(value);
+            }, 
             message: '{VALUE} is not a valid email'
-       }
+        }]
     },
     password: {
         type: String,
@@ -74,6 +76,29 @@ UserSchema.statics.findByToken = function (token) {
         _id: decoded._id,
         'tokens.token': token, // quotes required when value has a .dot.
         'tokens.access': 'auth'
+    });
+};
+
+// used by POST /users/login
+UserSchema.statics.findByCredentials = function(email, password) {
+    var User = this;
+
+    return User.findOne({email}).then((user) => {
+        if (!user) { // caught by .cacth(e) in server.js when user does not exist
+            return Promise.reject();
+        }
+
+        return new Promise((resolve, reject) => { // reject triggers .catch(e) in serve.js
+            // Use bcrypt.compare to compare passwor and user.password
+            // pass in password, hashed, password, callback
+            bcrypt.compare(password, user.password, (err, res) => {
+                if (res) {
+                    resolve(user); // executes '=> {res.send(user)}' in line 140,1 server.js'
+                } else {
+                    reject();
+                }
+            });
+        });
     });
 };
 

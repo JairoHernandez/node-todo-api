@@ -111,7 +111,7 @@ app.patch('/todos/:id', (req, res) => {
     });
 });
 
-// POST /users to create users
+// POST /users to create users(aka signUP for users)
 app.post('/users', (req, res) => {
 
     var body = _.pick(req.body, ['email', 'password']);
@@ -130,6 +130,21 @@ app.post('/users', (req, res) => {
 // middleware arrow function authenticate in middleware/authenticate.js will make route private
 app.get('/users/me', authenticate, (req, res) => {
     res.send(req.user);
+});
+
+// POST /users/login {email, password}
+// no need to call 'authenticte' since we dont have a token yet this function will try to get one.
+app.post('/users/login', (req, res) => {
+    var body = _.pick(req.body, ['email', 'password']);
+    
+    User.findByCredentials(body.email, body.password).then((user) => {
+        // res.send(user);
+        return user.generateAuthToken().then((token) => { // return keeps chain alive so that catch(e) cant still run if need be
+            res.header('x-auth', token).send(user); // res.send is response with token just generated and its user.
+        });
+    }).catch((e) => {
+        res.status(400).send();
+    });
 });
 
 app.listen(port, () => {
