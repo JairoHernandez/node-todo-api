@@ -139,7 +139,7 @@ app.post('/users/login', (req, res) => {
     
     User.findByCredentials(body.email, body.password).then((user) => {
         // res.send(user);
-        return user.generateAuthToken().then((token) => { // return keeps chain alive so that catch(e) cant still run if need be
+        return user.generateAuthToken().then((token) => { // return keeps chain alive so that catch(e) can still run if need be
             res.header('x-auth', token).send(user); // res.send is response with token just generated and its user.
         });
     }).catch((e) => {
