@@ -57,6 +57,16 @@ UserSchema.methods.generateAuthToken = function () {
     });
 };
 
+UserSchema.methods.removeToken = function (token) {
+    var user = this;
+    return user.update({  // return allows to chain to server.js line 151.
+        $pull: 
+        {
+            tokens: {token} // ES6 version equivalent to tokens: {token: token}
+        }
+    });
+};
+
 // turns everything into model method as oppose to instance method.
 UserSchema.statics.findByToken = function (token) {
     var User = this; // capitalized model binding.
