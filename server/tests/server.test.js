@@ -315,3 +315,29 @@ describe('POST /users/login', () => {
             });
     });
 });
+
+describe('DELETE /users/me/token', () => {
+    it('it should remove auth token on logout', (done) => {
+        // DELETE /users/me/token
+        // Set x-auth equal to tokens from seed.js var users tokens array value token 
+        // 200 
+        // Find user, verify that tokens array has length of zero.
+
+        request(app)
+            .delete('/users/me/token')
+            .set('x-auth', users[0].tokens[0].token) // the route is not only private but it uses that token as token to delete
+            .expect(200)
+            .end((err, res) => {
+                if (err) {
+                    return done(err);
+                }
+
+                // query findById
+                User.findById(users[0]._id).then((user) => {
+                    expect(user.tokens.length).toBe(0);
+                    done();
+
+                }).catch((e) => done(e));
+            })
+    });
+});
