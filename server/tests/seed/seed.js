@@ -18,7 +18,11 @@ const users = [{
     // usr with no auth token
     _id: userTwoId,
     email: 'jen@example.com',
-    password: 'UserTwoPass'
+    password: 'UserTwoPass',
+    tokens: [{
+        access: 'auth',
+        token: jwt.sign({_id: userTwoId, access: 'auth'}, 'abc123').toString()
+    }]
 }];
 
 // Requires hasshing passwords before saving to DB.
@@ -33,8 +37,18 @@ const populateUsers = (done) => {
     };
 
 const todos = [
-    {_id: new ObjectID(), text: 'First test todo'},
-    {_id: new ObjectID(), text: 'Second test todo', completed: true, completedAt: 333}
+    {   
+        _id: new ObjectID(), 
+        text: 'First test todo', 
+        _creator: userOneId // so that a user only sees their todos and no one else's
+    },
+    {   
+        _id: new ObjectID(), 
+        text: 'Second test todo', 
+        completed: true, 
+        completedAt: 333, 
+        _creator: userTwoId // so that a user only sees their todos and no one else's
+    }
 ]
 
 const populateTodos = (done) => {

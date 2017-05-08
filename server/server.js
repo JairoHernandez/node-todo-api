@@ -18,11 +18,12 @@ const _ = require('lodash');
 
 app.use(bodyParser.json()); // returns a function
 
-// Generate POST with postman.
-app.post('/todos', (req, res) => {
+// Generate POST with postman to create a todo.
+app.post('/todos', authenticate, (req, res) => {
     // console.log(req.body); // body stored by body-parser
     var todo = new Todo({
-        text: req.body.text
+        text: req.body.text,
+        _creator: req.user._id
     });
 
     todo.save().then((doc) => {
@@ -32,9 +33,9 @@ app.post('/todos', (req, res) => {
     });
 });
 
-app.get('/todos', (req, res) => {
+app.get('/todos', authenticate, (req, res) => {
 
-    Todo.find().then((todos) => {
+    Todo.find({_creator: req.user._id}).then((todos) => {
         // better to pass in ES6 {todos} object becaues of all the accessible properties rather than passing a todos array. Sets more flexible future.
         res.send({todos});
     }, (e) => {
@@ -44,7 +45,7 @@ app.get('/todos', (req, res) => {
 
 // GET /todos/1234324
 // parameter :id can be any name
-app.get('/todos/:id', (req, res) => {
+app.get('/todos/:id', authenticate, (req, res) => {
     //res.send(req.params); // Use to test API is responding in postman.
     var id = req.params.id;
 
@@ -54,7 +55,10 @@ app.get('/todos/:id', (req, res) => {
     }
 
     // findById Section 7 Lecture 78
-    Todo.findById(id).then((todo) => {
+    Todo.findOne({
+        _id: id,
+        _creator: req.user._id // user that's logged in.
+    }).then((todo) => {
         if (!todo) {
             return res.status(404).send();
         }
@@ -62,7 +66,7 @@ app.get('/todos/:id', (req, res) => {
     }).catch((e) => res.status(400));
 });
 
-app.delete('/todos/:id', (req, res) => {
+app.delete('/todos/:id', authenticate, (req, res) => {
     // get id
     var id = req.params.id;    
 
@@ -71,8 +75,11 @@ app.delete('/todos/:id', (req, res) => {
         return res.status(404).send();
     }
 
-    //remove todo by id
-    Todo.findByIdAndRemove(id).then((todo) => {
+    //remove todo by todo id and userid.
+    Todo.findOneAndRemove({
+        _id: id,
+        _creator: req.user._id // user that's logged in.
+    }).then((todo) => {
         if (!todo) {
             return res.status(404).send();
         }
@@ -80,7 +87,7 @@ app.delete('/todos/:id', (req, res) => {
     }).catch((e) => res.status(400));
 });
 
-app.patch('/todos/:id', (req, res) => {
+app.patch('/todos/:id', authenticate, (req, res) => {
     var id = req.params.id;
 
     // Chooses which properties a user can update. In this case only 'text' and 'completed'.
@@ -98,8 +105,8 @@ app.patch('/todos/:id', (req, res) => {
         body.completedAt = null; // when you want to remove from db always set to null.
     }
 
-    // {new: true} same returnOriginal: false  from mongodb-update.js because that's how mongo developers wrote it.
-    Todo.findByIdAndUpdate(id, {$set: body}, {new: true}).then((todo) => {
+    // findOneAndUpdate allows defining custom query.
+    Todo.findOneAndUpdate({_id: id, _creator: req.user._id}, {$set: body}, {new: true}).then((todo) => {
         if (!todo) {
             return res.status(404).send();
         }
